@@ -1335,7 +1335,7 @@ class RaftConsensus {
     /**
      * Append an entry to the log and wait for it to be committed.
      */
-    std::pair<ClientResult, uint64_t>
+    std::pair<ClientResult, size_t>
     replicateEntry(Storage::Log::Entry& entry,
                    std::unique_lock<Mutex>& lockGuard);
 
