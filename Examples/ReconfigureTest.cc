@@ -239,9 +239,9 @@ main(int argc, char** argv)
         uint64_t desiredServers =
             (uint64_t(rand()) % fullConfiguration.size()) + 1; // NOLINT
         Configuration remainingServers = fullConfiguration;
-        for (uint64_t i = 0; i < desiredServers; ++i) {
-            uint64_t j =
-                (uint64_t(rand()) % remainingServers.size()); // NOLINT
+        for (size_t i = 0; i < desiredServers; ++i) {
+            size_t j =
+                (size_t(rand()) % remainingServers.size()); // NOLINT
             newConfiguration.push_back(remainingServers.at(j));
             std::swap(remainingServers.at(j),
                       remainingServers.back());

@@ -30,7 +30,7 @@ namespace Storage {
 
 ////////// Log::Sync //////////
 
-Log::Sync::Sync(uint64_t lastIndex)
+Log::Sync::Sync(size_t lastIndex)
     : lastIndex(lastIndex)
     , completed(false) {
 }
@@ -60,7 +60,7 @@ operator<<(std::ostream& os, const Log& log)
     os << "end of metadata" << std::endl;
     os << "startIndex: " << log.getLogStartIndex() << std::endl;
     os << std::endl;
-    for (uint64_t i = log.getLogStartIndex();
+    for (size_t i = log.getLogStartIndex();
          i <= log.getLastLogIndex();
          ++i) {
         os << "Entry " << i << " start:" << std::endl;

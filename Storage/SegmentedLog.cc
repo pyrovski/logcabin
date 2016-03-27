@@ -46,7 +46,7 @@ namespace {
  * Format string for open segment filenames.
  * First param: incrementing counter.
  */
-#define OPEN_SEGMENT_FORMAT "open-%lu"
+#define OPEN_SEGMENT_FORMAT "open-%" PRIu64 ""
 
 /**
  * Format string for closed segment filenames.
@@ -286,9 +286,9 @@ SegmentedLog::Sync::wait()
     std::chrono::nanoseconds elapsed = waitEnd - waitStart;
     if (elapsed > diskWriteDurationThreshold) {
         WARNING("Executing filesystem operations took longer than expected "
-                "(%s for %lu writes totaling %lu bytes, %lu truncates, "
-                "%lu renames, %lu fdatasyncs, %lu fsyncs, %lu closes, and "
-                "%lu unlinks)",
+                "(%s for %" PRIu64 " writes totaling %" PRIu64 " bytes, %" PRIu64 " truncates, "
+                "%" PRIu64 " renames, %" PRIu64 " fdatasyncs, %" PRIu64 " fsyncs, %" PRIu64 " closes, and "
+                "%" PRIu64 " unlinks)",
                 Core::StringUtil::toString(elapsed).c_str(),
                 writes,
                 totalBytesWritten,
@@ -417,7 +417,7 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
                                                        std::move(segment)});
             if (!result.second) {
                 Segment& other = result.first->second;
-                PANIC("Two segments contain entry %lu: %s and %s",
+                PANIC("Two segments contain entry %" PRIu64 ": %s and %s",
                       startIndex,
                       other.filename.c_str(),
                       filename.c_str());
@@ -435,11 +435,11 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
             Segment& segment = it->second;
             if (nextIndex < segment.startIndex) {
                 PANIC("Did not find segment containing entries "
-                      "%lu to %lu (inclusive)",
+                      "%" PRIu64 " to %" PRIu64 " (inclusive)",
                       nextIndex, segment.startIndex - 1);
             } else if (segment.startIndex < nextIndex) {
                 PANIC("Segment %s contains duplicate entries "
-                      "%lu to %lu (inclusive)",
+                      "%" PRIu64 " to %" PRIu64 " (inclusive)",
                       segment.filename.c_str(),
                       segment.startIndex,
                       std::min(segment.endIndex,
@@ -511,8 +511,8 @@ SegmentedLog::append(const std::vector<const Entry*>& entries)
         if (openSegment->bytes > sizeof(SegmentHeader) &&
             openSegment->bytes + buf.getLength() > MAX_SEGMENT_SIZE) {
             NOTICE("Rolling over to new head segment: trying to append new "
-                   "entry that is %lu bytes long, but open segment is already "
-                   "%lu of %lu bytes large",
+                   "entry that is %" PRIu64 " bytes long, but open segment is already "
+                   "%" PRIu64 " of %" PRIu64 " bytes large",
                    buf.getLength(),
                    openSegment->bytes,
                    MAX_SEGMENT_SIZE);
@@ -549,8 +549,8 @@ SegmentedLog::append(const std::vector<const Entry*>& entries)
         }
 
         if (buf.getLength() > MAX_SEGMENT_SIZE) {
-            WARNING("Trying to append an entry of %lu bytes when the maximum "
-                    "segment size is %lu bytes. Placing this entry in its own "
+            WARNING("Trying to append an entry of %" PRIu64 " bytes when the maximum "
+                    "segment size is %" PRIu64 " bytes. Placing this entry in its own "
                     "segment. Consider adjusting 'storageSegmentBytes' in the "
                     "config.",
                     buf.getLength(),
@@ -576,8 +576,8 @@ SegmentedLog::getEntry(uint64_t index) const
 {
     if (index < getLogStartIndex() ||
         index > getLastLogIndex()) {
-        PANIC("Attempted to access entry %lu outside of log "
-              "(start index is %lu, last index is %lu)",
+        PANIC("Attempted to access entry %" PRIu64 " outside of log "
+              "(start index is %" PRIu64 ", last index is %" PRIu64 ")",
               index, getLogStartIndex(), getLastLogIndex());
     }
     auto it = segmentsByStartIndex.upper_bound(index);
@@ -644,7 +644,7 @@ SegmentedLog::truncatePrefix(uint64_t newStartIndex)
     if (newStartIndex <= logStartIndex)
         return;
 
-    NOTICE("Truncating log to start at index %lu (was %lu)",
+    NOTICE("Truncating log to start at index %" PRIu64 " (was %" PRIu64 ")",
            newStartIndex, logStartIndex);
     logStartIndex = newStartIndex;
     // update metadata before removing files in case of interruption
@@ -654,7 +654,7 @@ SegmentedLog::truncatePrefix(uint64_t newStartIndex)
         Segment& segment = segmentsByStartIndex.begin()->second;
         if (logStartIndex <= segment.endIndex)
             break;
-        NOTICE("Deleting unneeded segment %s (its end index is %lu)",
+        NOTICE("Deleting unneeded segment %s (its end index is %" PRIu64 ")",
                segment.filename.c_str(),
                segment.endIndex);
         currentSync->ops.emplace_back(dir.fd, Sync::Op::UNLINKAT);
@@ -681,7 +681,7 @@ SegmentedLog::truncateSuffix(uint64_t newEndIndex)
     if (newEndIndex >= getLastLogIndex())
         return;
 
-    NOTICE("Truncating log to end at index %lu (was %lu)",
+    NOTICE("Truncating log to end at index %" PRIu64 " (was %" PRIu64 ")",
            newEndIndex, getLastLogIndex());
     { // Check if the open segment has some entries we need. If so,
       // just truncate that segment, open a new one, and return.
@@ -773,7 +773,7 @@ SegmentedLog::updateMetadata()
 
     TimePoint start = Clock::now();
 
-    NOTICE("Writing new storage metadata (version %lu) to %s",
+    NOTICE("Writing new storage metadata (version %" PRIu64 ") to %s",
            metadata.version(),
            filename.c_str());
     FS::File file = FS::openFile(dir, filename, O_CREAT|O_WRONLY|O_TRUNC);
@@ -792,7 +792,7 @@ SegmentedLog::updateMetadata()
     metadataWriteNanos.push(uint64_t(elapsed.count()));
     if (elapsed > diskWriteDurationThreshold) {
         WARNING("Writing metadata file took longer than expected "
-                "(%s for %lu bytes)",
+                "(%s for %" PRIu64 " bytes)",
                 Core::StringUtil::toString(elapsed).c_str(),
                 record.getLength());
         metadataWriteNanos.noteExceptional(start, uint64_t(elapsed.count()));
@@ -889,12 +889,12 @@ SegmentedLog::readMetadata(const std::string& filename,
     }
     if (error.empty()) {
         if (metadata.format_version() > 1) {
-            PANIC("The format version found in %s is %lu but this code "
+            PANIC("The format version found in %s is %" PRIu64 " but this code "
                   "only understands version 1",
                   filename.c_str(),
                   metadata.format_version());
         }
-        NOTICE("Read metadata version %lu from %s",
+        NOTICE("Read metadata version %" PRIu64 " from %s",
                metadata.version(), filename.c_str());
         return true;
     } else {
@@ -931,7 +931,7 @@ SegmentedLog::loadClosedSegment(Segment& segment, uint64_t logStartIndex)
 
     if (segment.endIndex < logStartIndex) {
         NOTICE("Removing closed segment whose entries are no longer "
-               "needed (last index is %lu but log start index is %lu): %s",
+               "needed (last index is %" PRIu64 " but log start index is %" PRIu64 "): %s",
                segment.endIndex,
                logStartIndex,
                segment.filename.c_str());
@@ -952,8 +952,8 @@ SegmentedLog::loadClosedSegment(Segment& segment, uint64_t logStartIndex)
                                       &segment.entries.back().entry);
         }
         if (!error.empty()) {
-            PANIC("Could not read entry %lu in log segment %s "
-                  "(offset %lu bytes). This indicates the file was "
+            PANIC("Could not read entry %" PRIu64 " in log segment %s "
+                  "(offset %" PRIu64 " bytes). This indicates the file was "
                   "somehow corrupted. Error was: %s",
                   index,
                   segment.filename.c_str(),
@@ -962,7 +962,7 @@ SegmentedLog::loadClosedSegment(Segment& segment, uint64_t logStartIndex)
         }
     }
     if (offset < reader.getFileLength()) {
-        WARNING("Found an extra %lu bytes at the end of closed segment "
+        WARNING("Found an extra %" PRIu64 " bytes at the end of closed segment "
                 "%s. This can happen if the server crashed while "
                 "truncating the segment. Truncating these now.",
                 reader.getFileLength() - offset,
@@ -1012,9 +1012,9 @@ SegmentedLog::loadOpenSegment(Segment& segment, uint64_t logStartIndex)
             uint64_t remainingBytes = reader.getFileLength() - offset;
             if (isAllZeros(reader.get(offset, remainingBytes),
                            remainingBytes)) {
-                WARNING("Truncating %lu zero bytes at the end of log "
-                        "segment %s (%lu bytes into the segment, "
-                        "following  entry %lu). This is most likely "
+                WARNING("Truncating %" PRIu64 " zero bytes at the end of log "
+                        "segment %s (%" PRIu64 " bytes into the segment, "
+                        "following  entry %" PRIu64 "). This is most likely "
                         "because the server shutdown uncleanly.",
                         remainingBytes,
                         segment.filename.c_str(),
@@ -1023,10 +1023,10 @@ SegmentedLog::loadOpenSegment(Segment& segment, uint64_t logStartIndex)
             } else {
                 // TODO(ongaro): do we want to save these bytes somewhere?
                 WARNING("Could not read entry in log segment %s "
-                        "(%lu bytes into the segment, following "
-                        "entry %lu), probably because it was being "
+                        "(%" PRIu64 " bytes into the segment, following "
+                        "entry %" PRIu64 "), probably because it was being "
                         "written when the server crashed. Discarding the "
-                        "remainder of the file (%lu bytes). Error was: %s",
+                        "remainder of the file (%" PRIu64 " bytes). Error was: %s",
                         segment.filename.c_str(),
                         offset,
                         lastIndex,
@@ -1046,7 +1046,7 @@ SegmentedLog::loadOpenSegment(Segment& segment, uint64_t logStartIndex)
         remove = true;
     } else if (segment.entries.back().entry.index() < logStartIndex) {
         NOTICE("Removing open segment whose entries are no longer "
-               "needed (last index is %lu but log start index is %lu): %s",
+               "needed (last index is %" PRIu64 " but log start index is %" PRIu64 "): %s",
                segment.entries.back().entry.index(),
                logStartIndex,
                segment.filename.c_str());
@@ -1136,7 +1136,7 @@ SegmentedLog::closeSegment()
     Segment& openSegment = getOpenSegment();
     if (openSegment.startIndex > openSegment.endIndex) {
         // Segment is empty; just remove it.
-        NOTICE("Removing empty open segment (start index %lu): %s",
+        NOTICE("Removing empty open segment (start index %" PRIu64 "): %s",
                openSegment.startIndex,
                openSegment.filename.c_str());
         openSegmentFile.close();

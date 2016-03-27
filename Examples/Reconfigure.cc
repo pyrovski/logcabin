@@ -203,7 +203,7 @@ main(int argc, char** argv)
          ++it) {
         Server info;
         Result result = cluster.getServerInfo(*it,
-                                              /* timeout = 2s */ 2000000000UL,
+                                              /* timeout = 2s */ UINT64_C(2000000000),
                                               info);
         switch (result.status) {
             case Status::OK:

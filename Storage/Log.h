@@ -50,7 +50,7 @@ class Log {
      */
     class Sync {
       public:
-        explicit Sync(uint64_t lastIndex);
+        explicit Sync(size_t lastIndex);
         virtual ~Sync();
         /**
          * Wait for the log entries to be durable.
@@ -64,7 +64,7 @@ class Log {
          * After the call to wait, every entry in the log up to this one is
          * durable.
          */
-        uint64_t lastIndex;
+        size_t lastIndex;
         /**
          * Used by destructor to make sure that Log::syncComplete was called.
          */
@@ -87,7 +87,7 @@ class Log {
      * \return
      *      Range of indexes of the new entries in the log, inclusive.
      */
-    virtual std::pair<uint64_t, uint64_t> append(
+    virtual std::pair<size_t, size_t> append(
                             const std::vector<const Entry*>& entries) = 0;
 
     /**
@@ -99,7 +99,7 @@ class Log {
      *      The entry corresponding to that index. This reference is only
      *      guaranteed to be valid until the next time the log is modified.
      */
-    virtual const Entry& getEntry(uint64_t index) const = 0;
+    virtual const Entry& getEntry(size_t index) const = 0;
 
     /**
      * Get the index of the first entry in the log (whether or not this
@@ -108,7 +108,7 @@ class Log {
      *      1 for logs that have never had truncatePrefix called,
      *      otherwise the largest index passed to truncatePrefix.
      */
-    virtual uint64_t getLogStartIndex() const = 0;
+    virtual size_t getLogStartIndex() const = 0;
 
     /**
      * Get the index of the most recent entry in the log.
@@ -116,7 +116,7 @@ class Log {
      *      The index of the most recent entry in the log,
      *      or getLogStartIndex() - 1 if the log is empty.
      */
-    virtual uint64_t getLastLogIndex() const = 0;
+    virtual size_t getLastLogIndex() const = 0;
 
     /**
      * Return the name of the log implementation as it would be specified in
@@ -164,7 +164,7 @@ class Log {
      *      than firstIndex. This can be any log index, including 0 and those
      *      past the end of the log.
      */
-    virtual void truncatePrefix(uint64_t firstIndex) = 0;
+    virtual void truncatePrefix(size_t firstIndex) = 0;
 
     /**
      * Delete the log entries past the given index.
@@ -178,7 +178,7 @@ class Log {
      *      truncateSuffix(). This never happens on leaders, so it's not a real
      *      limitation, but things may go wonky otherwise.
      */
-    virtual void truncateSuffix(uint64_t lastIndex) = 0;
+    virtual void truncateSuffix(size_t lastIndex) = 0;
 
     /**
      * Call this after changing #metadata.

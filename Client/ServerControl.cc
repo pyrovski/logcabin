@@ -92,7 +92,7 @@ class OptionParser {
      * Return the positional argument at the given index,
      * or panic if there were not enough arguments.
      */
-    std::string at(uint64_t index) {
+    std::string at(size_t index) {
         if (args.size() <= index)
             usageError("Missing arguments");
         lastIndex = index;
@@ -102,7 +102,7 @@ class OptionParser {
     /**
      * Return all arguments at index or following it.
      */
-    std::string remaining(uint64_t index) {
+    std::string remaining(size_t index) {
         lastIndex = args.size();
         std::string r;
         while (index < args.size()) {
@@ -273,7 +273,7 @@ class OptionParser {
     int& argc;
     char**& argv;
     std::vector<std::string> args;
-    uint64_t lastIndex;
+    size_t lastIndex;
     std::string logPolicy;
     std::string server;
     uint64_t timeout;

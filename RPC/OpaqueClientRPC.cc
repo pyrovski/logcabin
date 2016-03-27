@@ -24,7 +24,7 @@ namespace RPC {
 OpaqueClientRPC::OpaqueClientRPC()
     : mutex()
     , session()
-    , responseToken(~0UL)
+    , responseToken(~UINT64_C(0))
     , status(Status::NOT_READY)
     , reply()
     , errorMessage()

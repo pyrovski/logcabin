@@ -230,7 +230,7 @@ class StorageSegmentedLogTest : public ::testing::Test {
             std::string error = log->readProtoFromFile(file, contents,
                                                        &offset, &metadata);
             EXPECT_FALSE(error.empty());
-            //WARNING("byte flipped=%lu error: %s", i, error.c_str());
+            //WARNING("byte flipped=%" PRIu64 " error: %s", i, error.c_str());
             EXPECT_EQ(5U, offset);
             offset = 5;
             map[i] = uint8_t(~map[i]);
@@ -253,7 +253,7 @@ class StorageSegmentedLogTest : public ::testing::Test {
             std::string error = log->readProtoFromFile(file, contents,
                                                        &offset, &metadata);
             EXPECT_FALSE(error.empty());
-            //WARNING("length=%lu error: %s", size, error.c_str());
+            //WARNING("length=%" PRIu64 " error: %s", size, error.c_str());
             EXPECT_EQ(5U, offset);
             offset = 5;
         } while (size > 5);

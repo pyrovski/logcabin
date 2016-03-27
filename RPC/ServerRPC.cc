@@ -115,7 +115,7 @@ ServerRPC::getRequest(Core::Buffer& buffer) const
 {
     if (!active)
         return false;
-    uint64_t bytes = opaqueRPC.request.getLength();
+    size_t bytes = opaqueRPC.request.getLength();
     assert(bytes >= sizeof(RequestHeaderVersion1));
     bytes -= sizeof(RequestHeaderVersion1);
     buffer.setData(new char[bytes],

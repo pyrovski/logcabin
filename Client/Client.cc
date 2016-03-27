@@ -54,7 +54,7 @@ Server::Server(uint64_t serverId, const std::string& addresses)
 }
 
 Server::Server()
-    : serverId(~0UL)
+    : serverId(~UINT64_C(0))
     , addresses("")
 {
 }

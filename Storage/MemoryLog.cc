@@ -98,7 +98,7 @@ MemoryLog::takeSync()
 }
 
 void
-MemoryLog::truncatePrefix(uint64_t firstIndex)
+MemoryLog::truncatePrefix(size_t firstIndex)
 {
     if (firstIndex > startIndex) {
         // Erase log entries in range [startIndex, firstIndex), so deque
@@ -113,7 +113,7 @@ MemoryLog::truncatePrefix(uint64_t firstIndex)
 }
 
 void
-MemoryLog::truncateSuffix(uint64_t lastIndex)
+MemoryLog::truncateSuffix(size_t lastIndex)
 {
     if (lastIndex < startIndex)
         entries.clear();

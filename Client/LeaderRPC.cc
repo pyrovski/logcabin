@@ -289,12 +289,12 @@ LeaderRPC::reportFailure(std::shared_ptr<RPC::ClientSession> cachedSession)
     ++failuresSinceLastSuccess;
     if (Core::Util::isPowerOfTwo(failuresSinceLastSuccess)) {
         NOTICE("RPC to server failed: %s "
-               "(there have been %lu failed attempts during this outage)",
+               "(there have been %" PRIu64 " failed attempts during this outage)",
                cachedSession->toString().c_str(),
                failuresSinceLastSuccess);
     } else {
         VERBOSE("RPC to server failed: %s "
-                "(there have been %lu failed attempts during this outage)",
+                "(there have been %" PRIu64 " failed attempts during this outage)",
                 cachedSession->toString().c_str(),
                 failuresSinceLastSuccess);
     }
@@ -310,12 +310,12 @@ LeaderRPC::reportNotLeader(std::shared_ptr<RPC::ClientSession> cachedSession)
     ++failuresSinceLastSuccess;
     if (Core::Util::isPowerOfTwo(failuresSinceLastSuccess)) {
         NOTICE("Server [%s] is not leader, will try random host next "
-               "(there have been %lu failed attempts during this outage)",
+               "(there have been %" PRIu64 " failed attempts during this outage)",
                cachedSession->toString().c_str(),
                failuresSinceLastSuccess);
     } else {
         VERBOSE("Server [%s] is not leader, will try random host next "
-                "(there have been %lu failed attempts during this outage)",
+                "(there have been %" PRIu64 " failed attempts during this outage)",
                 cachedSession->toString().c_str(),
                 failuresSinceLastSuccess);
     }
@@ -332,13 +332,13 @@ LeaderRPC::reportRedirect(std::shared_ptr<RPC::ClientSession> cachedSession,
     ++failuresSinceLastSuccess;
     if (Core::Util::isPowerOfTwo(failuresSinceLastSuccess)) {
         NOTICE("Server [%s] is not leader, will try suggested %s next "
-               "(there have been %lu failed attempts during this outage)",
+               "(there have been %" PRIu64 " failed attempts during this outage)",
                cachedSession->toString().c_str(),
                host.c_str(),
                failuresSinceLastSuccess);
     } else {
         VERBOSE("Server [%s] is not leader, will try suggested %s next "
-                "(there have been %lu failed attempts during this outage)",
+                "(there have been %" PRIu64 " failed attempts during this outage)",
                 cachedSession->toString().c_str(),
                 host.c_str(),
                 failuresSinceLastSuccess);
@@ -354,7 +354,7 @@ LeaderRPC::reportSuccess(std::shared_ptr<RPC::ClientSession> cachedSession)
     if (cachedSession != leaderSession)
         return;
     if (failuresSinceLastSuccess > 0) {
-        NOTICE("Successfully connected to leader [%s] after %lu failures",
+        NOTICE("Successfully connected to leader [%s] after %" PRIu64 " failures",
                cachedSession->toString().c_str(),
                failuresSinceLastSuccess);
         failuresSinceLastSuccess = 0;

@@ -186,8 +186,8 @@ class OptionParser {
     char**& argv;
     std::string cluster;
     std::string logPolicy;
-    uint64_t size;
-    uint64_t writers;
+    size_t size;
+    size_t writers;
     uint64_t totalWrites;
     uint64_t timeout;
 };
@@ -286,13 +286,13 @@ main(int argc, char** argv)
         uint64_t totalWritesDone = 0;
         std::vector<std::thread> threads;
         std::thread timer(timerThreadMain, options.timeout, std::ref(exit));
-        for (uint64_t i = 0; i < options.writers; ++i) {
+        for (size_t i = 0; i < options.writers; ++i) {
             threads.emplace_back(writeThreadMain, i, std::ref(options),
                                  tree, std::ref(key), std::ref(value),
                                  std::ref(exit),
                                  std::ref(writesDonePerThread.at(i)));
         }
-        for (uint64_t i = 0; i < options.writers; ++i) {
+        for (size_t i = 0; i < options.writers; ++i) {
             threads.at(i).join();
             totalWritesDone += writesDonePerThread.at(i);
         }

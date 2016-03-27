@@ -148,7 +148,7 @@ TEST_F(RPCClientServerTest, echo) {
 TEST_F(RPCClientServerTest, timeout_TimingSensitive) {
     config.set("tcpHeartbeatTimeoutMilliseconds", 12);
     init();
-    EXPECT_EQ(12UL * 1000 * 1000, clientSession->PING_TIMEOUT_NS);
+    EXPECT_EQ(UINT64_C(12) * 1000 * 1000, clientSession->PING_TIMEOUT_NS);
     rpcHandler.delayMicros = 14 * 1000;
 
     // The server should not time out, since the serverEventLoopThread should

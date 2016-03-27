@@ -96,53 +96,53 @@ parseSignedDuration(const std::string& description)
     } else if (units == "us" ||
                units == "microsecond" ||
                units == "microseconds") {
-        if (std::abs(r) <= 9223372036854775L)
-            r *= 1000L;
+        if (std::abs(r) <= UINT64_C(9223372036854775))
+            r *= UINT64_C(1000);
         else
             r = overflow;
     } else if (units == "ms" ||
                units == "millisecond" ||
                units == "milliseconds") {
-        if (std::abs(r) <= 9223372036854L)
-            r *= 1000000L;
+        if (std::abs(r) <= UINT64_C(9223372036854))
+            r *= UINT64_C(1000000);
         else
             r = overflow;
     } else if (units == "s" ||
                units == "second" ||
                units == "seconds" ||
                units == "") {
-        if (std::abs(r) <= 9223372036L)
-            r *= 1000000000L;
+        if (std::abs(r) <= UINT64_C(9223372036))
+            r *= UINT64_C(1000000000);
         else
             r = overflow;
     } else if (units == "min" ||
                units == "minute" ||
                units == "minutes") {
-        if (std::abs(r) <= 153722867L)
-            r *= 1000000000L * 60L;
+        if (std::abs(r) <= UINT64_C(153722867))
+            r *= UINT64_C(1000000000) * UINT64_C(60);
         else
             r = overflow;
     } else if (units == "h" ||
                units == "hr" ||
                units == "hour" ||
                units == "hours") {
-        if (std::abs(r) <= 2562047L)
-            r *= 1000000000L * 60L * 60L;
+        if (std::abs(r) <= UINT64_C(2562047))
+            r *= UINT64_C(1000000000) * UINT64_C(60) * UINT64_C(60);
         else
             r = overflow;
     } else if (units == "d" ||
                units == "day" ||
                units == "days") {
-        if (std::abs(r) <= 106751L)
-            r *= 1000000000L * 60L * 60L * 24L;
+        if (std::abs(r) <= UINT64_C(106751))
+            r *= UINT64_C(1000000000) * UINT64_C(60) * UINT64_C(60) * UINT64_C(24);
         else
             r = overflow;
     } else if (units == "w" ||
                units == "wk" ||
                units == "week" ||
                units == "weeks") {
-        if (std::abs(r) <= 15250L)
-            r *= 1000000000L * 60L * 60L * 24L * 7L;
+        if (std::abs(r) <= UINT64_C(15250))
+            r *= UINT64_C(1000000000) * UINT64_C(60) * UINT64_C(60) * UINT64_C(24) * UINT64_C(7);
         else
             r = overflow;
     } else if (units == "mo" ||
@@ -151,8 +151,8 @@ parseSignedDuration(const std::string& description)
         // Months vary in length, so this is the average number of seconds in a
         // month. If someone is specifying durations in such large units, they
         // probably won't care.
-        if (std::abs(r) <= 3507L)
-            r *= 1000000000L * 2629800L;
+        if (std::abs(r) <= UINT64_C(3507))
+            r *= UINT64_C(1000000000) * UINT64_C(2629800);
         else
             r = overflow;
     } else if (units == "y" ||
@@ -162,8 +162,8 @@ parseSignedDuration(const std::string& description)
         // Years vary in length due to leap years, so this is the number of
         // seconds in a 365.25-day year. If someone is specifying durations in
         // such large units, they probably won't care.
-        if (std::abs(r) <= 292L)
-            r *= 1000000000L * 31557600L;
+        if (std::abs(r) <= UINT64_C(292))
+            r *= UINT64_C(1000000000) * UINT64_C(31557600);
         else
             r = overflow;
     } else {
@@ -281,17 +281,17 @@ operator<<(std::ostream& os,
            const std::chrono::nanoseconds& duration)
 {
     int64_t nanos = duration.count();
-    if (nanos / 1000000000L != 0) {
-        int64_t whole    = nanos / 1000000000L;
-        int64_t fraction = nanos % 1000000000L;
+    if (nanos / UINT64_C(1000000000) != 0) {
+        int64_t whole    = nanos / UINT64_C(1000000000);
+        int64_t fraction = nanos % UINT64_C(1000000000);
         os << whole << padFraction(fraction, 9) << " s";
-    } else if (nanos / 1000000L != 0) {
-        int64_t whole    = nanos / 1000000L;
-        int64_t fraction = nanos % 1000000L;
+    } else if (nanos / UINT64_C(1000000) != 0) {
+        int64_t whole    = nanos / UINT64_C(1000000);
+        int64_t fraction = nanos % UINT64_C(1000000);
         os << whole << padFraction(fraction, 6) << " ms";
-    } else if (nanos / 1000L != 0) {
-        int64_t whole    = nanos / 1000L;
-        int64_t fraction = nanos % 1000L;
+    } else if (nanos / UINT64_C(1000) != 0) {
+        int64_t whole    = nanos / UINT64_C(1000);
+        int64_t fraction = nanos % UINT64_C(1000);
         os << whole << padFraction(fraction, 3) << " us";
     } else {
         os << nanos << " ns";

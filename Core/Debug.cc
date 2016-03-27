@@ -371,7 +371,7 @@ logPolicyToString(const std::vector<std::pair<std::string,
         ss << LogLevel::NOTICE;
     } else {
         bool lastPatternEmpty = false;
-        for (uint64_t i = 0; i < policy.size(); ++i) {
+        for (size_t i = 0; i < policy.size(); ++i) {
             if (policy.at(i).first.empty()) {
                 lastPatternEmpty = true;
             } else {

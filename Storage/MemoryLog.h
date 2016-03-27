@@ -34,16 +34,16 @@ class MemoryLog : public Log {
     MemoryLog();
     ~MemoryLog();
 
-    std::pair<uint64_t, uint64_t>
+    std::pair<size_t, size_t>
     append(const std::vector<const Entry*>& entries);
-    const Entry& getEntry(uint64_t logIndex) const;
-    uint64_t getLogStartIndex() const;
-    uint64_t getLastLogIndex() const;
+    const Entry& getEntry(size_t logIndex) const;
+    size_t getLogStartIndex() const;
+    size_t getLastLogIndex() const;
     std::string getName() const;
     uint64_t getSizeBytes() const;
     std::unique_ptr<Sync> takeSync();
-    void truncatePrefix(uint64_t firstIndex);
-    void truncateSuffix(uint64_t lastIndex);
+    void truncatePrefix(size_t firstIndex);
+    void truncateSuffix(size_t lastIndex);
     void updateMetadata();
 
   protected:
@@ -52,7 +52,7 @@ class MemoryLog : public Log {
      * The index for the first entry in the log. Begins as 1 for new logs but
      * will be larger for logs that have been snapshotted.
      */
-    uint64_t startIndex;
+    size_t startIndex;
 
     /**
      * Stores the entries that make up the log.

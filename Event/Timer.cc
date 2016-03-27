@@ -71,14 +71,14 @@ Timer::schedule(uint64_t nanoseconds)
     if (nanoseconds == 0)
         nanoseconds = 1;
 
-    const uint64_t nanosPerSecond = 1000 * 1000 * 1000;
+    const time_t nanosPerSecond = 1000 * 1000 * 1000;
     struct itimerspec newValue;
     memset(&newValue, 0, sizeof(newValue));
     newValue.it_value.tv_sec  = nanoseconds / nanosPerSecond;
     newValue.it_value.tv_nsec = nanoseconds % nanosPerSecond;
     int r = timerfd_settime(fd, 0, &newValue, NULL);
     if (r != 0) {
-        PANIC("Could not set timer to +%luns: %s",
+        PANIC("Could not set timer to +%" PRIu64 "ns: %s",
               nanoseconds,
               strerror(errno));
     }

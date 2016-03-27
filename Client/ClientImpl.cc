@@ -260,7 +260,7 @@ ClientImpl::ExactlyOnceRPCHelper::exit()
                     break;
                 case LeaderRPC::Status::TIMEOUT:
                     using Core::StringUtil::toString;
-                    WARNING("Could not definitively close client session %lu "
+                    WARNING("Could not definitively close client session %" PRIu64 " "
                             "within timeout (%s). It may remain open until it "
                             "expires.",
                             clientId,
@@ -270,7 +270,7 @@ ClientImpl::ExactlyOnceRPCHelper::exit()
                     WARNING("The server and/or replicated state machine "
                             "doesn't support the CloseSession command or "
                             "claims the request is malformed. This client's "
-                            "session (%lu) will remain open until it expires. "
+                            "session (%" PRIu64 ") will remain open until it expires. "
                             "Consider upgrading your servers (this command "
                             "was introduced in state machine version 2).",
                             clientId);

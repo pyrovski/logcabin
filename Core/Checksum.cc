@@ -51,7 +51,7 @@ uint32_t
 writeChecksumHelper(
         CryptoPP::HashTransformation& hashFn,
         const char* name,
-        std::initializer_list<std::pair<const void*, uint64_t>> data,
+        std::initializer_list<std::pair<const void*, size_t>> data,
         char result[MAX_LENGTH])
 {
     // Length of name in bytes, not including null character.

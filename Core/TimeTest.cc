@@ -238,9 +238,9 @@ TEST(CoreTime, parseSignedDurationOverflowNegative) {
 }
 
 TEST(CoreTime, parseNonNegativeDuration) {
-    EXPECT_EQ(31557600000000000UL,
+    EXPECT_EQ(UINT64_C(31557600000000000),
               Time::parseNonNegativeDuration("1 year"));
-    EXPECT_EQ(0UL,
+    EXPECT_EQ(UINT64_C(0),
               Time::parseNonNegativeDuration("0"));
     EXPECT_THROW(Time::parseNonNegativeDuration("-1 year"),
                  std::runtime_error);

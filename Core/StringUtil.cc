@@ -116,7 +116,7 @@ std::string
 join(const std::vector<std::string>& components, const std::string& glue)
 {
     std::string r;
-    for (uint64_t i = 0; i < components.size(); ++i) {
+    for (size_t i = 0; i < components.size(); ++i) {
         r += components.at(i);
         if (i < components.size() - 1)
             r += glue;

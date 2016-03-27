@@ -143,7 +143,7 @@ class Server {
      * \warning
      *      Only valid when we're leader.
      */
-    virtual uint64_t getMatchIndex() const = 0;
+    virtual size_t getMatchIndex() const = 0;
     /**
      * Return true if this Server has awarded us its vote for this term.
      */
@@ -228,7 +228,7 @@ class LocalServer : public Server {
     void exit();
     void beginRequestVote();
     void beginLeadership();
-    uint64_t getMatchIndex() const;
+    size_t getMatchIndex() const;
     bool haveVote() const;
     uint64_t getLastAckEpoch() const;
     void interrupt();
@@ -243,7 +243,7 @@ class LocalServer : public Server {
      * Valid for leaders only. Returned by getMatchIndex() and used to
      * advance the leader's commitIndex.
      */
-    uint64_t lastSyncedIndex;
+    size_t lastSyncedIndex;
 };
 
 /**
@@ -272,7 +272,7 @@ class Peer : public Server {
     void beginLeadership();
     void exit();
     uint64_t getLastAckEpoch() const;
-    uint64_t getMatchIndex() const;
+    size_t getMatchIndex() const;
     bool haveVote() const;
     bool isCaughtUp() const;
     void interrupt();
@@ -390,12 +390,12 @@ class Peer : public Server {
      * The index of the next entry to send to the follower. Only used when
      * leader. Minimum value of 1.
      */
-    uint64_t nextIndex;
+    size_t nextIndex;
 
     /**
      * See #getMatchIndex().
      */
-    uint64_t matchIndex;
+    size_t matchIndex;
 
     /**
      * See #getLastAckEpoch().
@@ -727,7 +727,7 @@ class ConfigurationManager {
      * \param description
      *      The serializable representation of the configuration.
      */
-    void add(uint64_t index,
+    void add(size_t index,
              const Protocol::Raft::Configuration& description);
     /**
      * Called when a log prefix is truncated (after saving a snapshot that
@@ -735,7 +735,7 @@ class ConfigurationManager {
      * \param firstIndexKept
      *      The log entries in range [1, firstIndexKept) are being discarded.
      */
-    void truncatePrefix(uint64_t firstIndexKept);
+    void truncatePrefix(size_t firstIndexKept);
     /**
      * Called when a log suffix is truncated (when the leader doesn't agree
      * with this server's log).
@@ -743,7 +743,7 @@ class ConfigurationManager {
      *      The log entries in range (lastIndexKept, infinity) are being
      *      discarded.
      */
-    void truncateSuffix(uint64_t lastIndexKept);
+    void truncateSuffix(size_t lastIndexKept);
     /**
      * Called when a new snapshot is saved.
      * Only the latest such configuration is kept.
@@ -752,7 +752,7 @@ class ConfigurationManager {
      * \param description
      *      The serializable representation of the configuration.
      */
-    void setSnapshot(uint64_t index,
+    void setSnapshot(size_t index,
                      const Protocol::Raft::Configuration& description);
 
     /**
@@ -764,8 +764,8 @@ class ConfigurationManager {
      *      The index and description of the configuration with the largest
      *      index in the range [1, lastIncludedIndex].
      */
-    std::pair<uint64_t, Protocol::Raft::Configuration>
-    getLatestConfigurationAsOf(uint64_t lastIncludedIndex) const;
+    std::pair<size_t, Protocol::Raft::Configuration>
+    getLatestConfigurationAsOf(size_t lastIncludedIndex) const;
 
   private:
 
@@ -1092,7 +1092,7 @@ class RaftConsensus {
      *      log index at which the entry has been committed to the replicated
      *      log.
      */
-    std::pair<ClientResult, uint64_t> replicate(const Core::Buffer& operation);
+    std::pair<ClientResult, size_t> replicate(const Core::Buffer& operation);
 
     /**
      * Change the cluster's configuration.
@@ -1429,7 +1429,7 @@ class RaftConsensus {
      * small in size.
      * Const except for unit tests.
      */
-    uint64_t MAX_LOG_ENTRIES_PER_REQUEST;
+    size_t MAX_LOG_ENTRIES_PER_REQUEST;
 
     /**
      * A candidate or leader waits this long after an RPC fails before sending
@@ -1451,7 +1451,7 @@ class RaftConsensus {
      * Prefer to keep RPC requests under this size.
      * Const except for unit tests.
      */
-    uint64_t SOFT_RPC_SIZE_LIMIT;
+    size_t SOFT_RPC_SIZE_LIMIT;
 
   public:
     /**

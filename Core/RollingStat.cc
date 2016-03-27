@@ -201,7 +201,7 @@ operator<<(std::ostream& os, const RollingStat& stat)
             int64_t nanos = timeConverter.unixNanos(it->first);
             os << it->second
                << " at "
-               << Core::StringUtil::format("%ld.%09ld",
+               << Core::StringUtil::format("%" PRId64 ".%09" PRId64 "",
                                            nanos / 1000000000U,
                                            nanos % 1000000000U)
                << std::endl;

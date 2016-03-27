@@ -156,7 +156,7 @@ TEST_F(CoreConfigTest, remove) {
 TEST_F(CoreConfigTest, toString) {
     EXPECT_EQ("1", Config::toString(1));
     EXPECT_EQ("1", Config::toString(1U));
-    EXPECT_EQ("18446744073709551615", Config::toString(~0UL));
+    EXPECT_EQ("18446744073709551615", Config::toString(~UINT64_C(0)));
     EXPECT_EQ("3.14", Config::toString(3.14));
     EXPECT_EQ("-9", Config::toString(-9));
     EXPECT_EQ("pie", Config::toString("pie"));

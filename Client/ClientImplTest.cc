@@ -240,8 +240,8 @@ TEST_F(ClientClientImplTest, absTimeout)
     EXPECT_EQ(ClientImpl::TimePoint::max(),
               ClientImpl::absTimeout(0));
     EXPECT_EQ(ClientImpl::TimePoint::max(),
-              ClientImpl::absTimeout(~0UL));
-    auto t = ClientImpl::absTimeout(35UL * 1000 * 1000 * 1000);
+              ClientImpl::absTimeout(~UINT64_C(0)));
+    auto t = ClientImpl::absTimeout(UINT64_C(35) * 1000 * 1000 * 1000);
     EXPECT_LT(ClientImpl::Clock::now() + std::chrono::seconds(30), t);
     EXPECT_GT(ClientImpl::Clock::now() + std::chrono::seconds(40), t);
 }

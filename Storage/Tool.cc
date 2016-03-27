@@ -243,7 +243,7 @@ main(int argc, char** argv)
                 config.read<std::string>("logPolicy", "NOTICE")));
 
         uint64_t serverId = config.read<uint64_t>("serverId");
-        NOTICE("Server ID is %lu", serverId);
+        NOTICE("Server ID is %" PRIu64 "", serverId);
 
         Storage::Layout storageLayout;
         storageLayout.init(config, serverId);
