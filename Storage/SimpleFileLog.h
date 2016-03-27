@@ -51,16 +51,16 @@ class SimpleFileLog : public Log {
 
     explicit SimpleFileLog(const Storage::FilesystemUtil::File& parentDir);
     ~SimpleFileLog();
-    std::pair<uint64_t, uint64_t>
+    std::pair<size_t, size_t>
     append(const std::vector<const Entry*>& entries);
     std::string getName() const;
     std::unique_ptr<Log::Sync> takeSync();
-    void truncatePrefix(uint64_t firstEntryId);
-    void truncateSuffix(uint64_t lastEntryId);
+    void truncatePrefix(size_t firstEntryId);
+    void truncateSuffix(size_t lastEntryId);
 
-    const Entry& getEntry(uint64_t) const;
-    uint64_t getLogStartIndex() const;
-    uint64_t getLastLogIndex() const;
+    const Entry& getEntry(size_t) const;
+    size_t getLogStartIndex() const;
+    size_t getLastLogIndex() const;
     uint64_t getSizeBytes() const;
 
 

@@ -124,17 +124,17 @@ class SegmentedLog : public Log {
     ~SegmentedLog();
 
     // Methods implemented from Log interface
-    std::pair<uint64_t, uint64_t>
-    append(const std::vector<const Entry*>& entries);
-    const Entry& getEntry(uint64_t) const;
-    uint64_t getLogStartIndex() const;
-    uint64_t getLastLogIndex() const;
+    std::pair<size_t, size_t>
+      append(const std::vector<const Entry*>& entries);
+    const Entry& getEntry(size_t) const;
+    size_t getLogStartIndex() const;
+    size_t getLastLogIndex() const;
     std::string getName() const;
     uint64_t getSizeBytes() const;
     std::unique_ptr<Log::Sync> takeSync();
     void syncCompleteVirtual(std::unique_ptr<Log::Sync> sync);
-    void truncatePrefix(uint64_t firstIndex);
-    void truncateSuffix(uint64_t lastIndex);
+    void truncatePrefix(size_t firstIndex);
+    void truncateSuffix(size_t lastIndex);
     void updateMetadata();
     void updateServerStats(Protocol::ServerStats& serverStats) const;
 
@@ -163,7 +163,7 @@ class SegmentedLog : public Log {
          *      The maximum number of prepared segments to hold in the queue
          *      at a time.
          */
-        explicit PreparedSegments(uint64_t queueSize);
+        explicit PreparedSegments(size_t queueSize);
 
         /**
          * Destructor.
@@ -290,7 +290,7 @@ class SegmentedLog : public Log {
             uint64_t size;
         };
 
-        explicit Sync(uint64_t lastIndex,
+        explicit Sync(size_t lastIndex,
                       std::chrono::nanoseconds diskWriteDurationThreshold);
         ~Sync();
         /**
@@ -359,12 +359,12 @@ class SegmentedLog : public Log {
          * The index of the first entry in the segment. If the segment is open
          * and empty, this may not exist yet and will be #logStartIndex.
          */
-        uint64_t startIndex;
+        size_t startIndex;
         /**
          * The index of the last entry in the segment, or #startIndex - 1 if
          * the segment is open and empty.
          */
-        uint64_t endIndex;
+        size_t endIndex;
         /**
          * Size in bytes of the valid entries stored in the file plus
          * the version number at the start of the file.
@@ -438,7 +438,7 @@ class SegmentedLog : public Log {
      *      True if the segment is valid; false if it has been removed entirely
      *      from disk.
      */
-    bool loadClosedSegment(Segment& segment, uint64_t logStartIndex);
+    bool loadClosedSegment(Segment& segment, size_t logStartIndex);
 
     /**
      * Read the given open segment from disk, issuing PANICs and WARNINGs
@@ -460,7 +460,7 @@ class SegmentedLog : public Log {
      *      True if the segment is valid; false if it has been removed entirely
      *      from disk.
      */
-    bool loadOpenSegment(Segment& segment, uint64_t logStartIndex);
+    bool loadOpenSegment(Segment& segment, size_t logStartIndex);
 
 
     ////////// normal operation helper functions //////////
@@ -574,7 +574,7 @@ class SegmentedLog : public Log {
      * The maximum size in bytes for newly written segments. Controlled by the
      * 'storageSegmentBytes' config option.
      */
-    const uint64_t MAX_SEGMENT_SIZE;
+    const size_t MAX_SEGMENT_SIZE;
 
     /**
      * Set to true if checkInvariants() should do its job, or set to false for
@@ -607,14 +607,14 @@ class SegmentedLog : public Log {
     /**
      * The index of the first entry in the log, see getLogStartIndex().
      */
-    uint64_t logStartIndex;
+    size_t logStartIndex;
 
     /**
      * Ordered map of all closed segments and the open segment, indexed by the
      * startIndex of each segment. This is used to support all the key
      * operations, such as looking up an entry and truncation.
      */
-    std::map<uint64_t, Segment> segmentsByStartIndex;
+    std::map<size_t, Segment> segmentsByStartIndex;
 
     /**
      * The total number of bytes occupied by the closed segments on disk.

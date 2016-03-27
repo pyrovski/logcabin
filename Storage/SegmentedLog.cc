@@ -75,7 +75,7 @@ isAllZeros(const void* _start, size_t length)
 ////////// SegmentedLog::PreparedSegments //////////
 
 
-SegmentedLog::PreparedSegments::PreparedSegments(uint64_t queueSize)
+SegmentedLog::PreparedSegments::PreparedSegments(size_t queueSize)
     : quietForUnitTests(false)
     , mutex()
     , consumed()
@@ -175,7 +175,7 @@ SegmentedLog::PreparedSegments::waitForOpenSegment()
 ////////// SegmentedLog::Sync //////////
 
 
-SegmentedLog::Sync::Sync(uint64_t lastIndex,
+SegmentedLog::Sync::Sync(size_t lastIndex,
                          std::chrono::nanoseconds diskWriteDurationThreshold)
     : Log::Sync(lastIndex)
     , diskWriteDurationThreshold(diskWriteDurationThreshold)
@@ -314,7 +314,7 @@ SegmentedLog::Sync::updateStats(Core::RollingStat& nanos) const
 ////////// SegmentedLog::Segment::Record //////////
 
 
-SegmentedLog::Segment::Record::Record(uint64_t offset)
+SegmentedLog::Segment::Record::Record(size_t offset)
     : offset(offset)
     , entry()
 {
@@ -348,7 +348,7 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
                            const Core::Config& config)
     : encoding(encoding)
     , checksumAlgorithm(config.read<std::string>("storageChecksum", "CRC32"))
-    , MAX_SEGMENT_SIZE(config.read<uint64_t>("storageSegmentBytes",
+    , MAX_SEGMENT_SIZE(config.read<size_t>("storageSegmentBytes",
                                              8 * 1024 * 1024))
     , shouldCheckInvariants(config.read<bool>("storageDebug", false))
     , diskWriteDurationThreshold(config.read<uint64_t>(
@@ -363,7 +363,7 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
     , segmentsByStartIndex()
     , totalClosedSegmentBytes(0)
     , preparedSegments(
-        std::max(config.read<uint64_t>("storageOpenSegments", 3),
+        std::max(config.read<size_t>("storageOpenSegments", 3),
                  1UL))
     , currentSync(new SegmentedLog::Sync(0, diskWriteDurationThreshold))
     , metadataWriteNanos()
@@ -411,7 +411,7 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
                                    : loadClosedSegment(segment, logStartIndex);
         if (keep) {
             assert(!segment.isOpen);
-            uint64_t startIndex = segment.startIndex;
+            size_t startIndex = segment.startIndex;
             std::string filename = segment.filename;
             auto result = segmentsByStartIndex.insert({startIndex,
                                                        std::move(segment)});
@@ -428,7 +428,7 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
     // Check to make sure no entry is present in more than one segment,
     // and that there's no gap in the numbering for entries we have.
     if (!segmentsByStartIndex.empty()) {
-        uint64_t nextIndex = segmentsByStartIndex.begin()->first;
+        size_t nextIndex = segmentsByStartIndex.begin()->first;
         for (auto it = segmentsByStartIndex.begin();
              it != segmentsByStartIndex.end();
              ++it) {
@@ -487,12 +487,12 @@ SegmentedLog::~SegmentedLog()
         currentSync->completed = true;
 }
 
-std::pair<uint64_t, uint64_t>
+std::pair<size_t, size_t>
 SegmentedLog::append(const std::vector<const Entry*>& entries)
 {
     Segment* openSegment = &getOpenSegment();
-    uint64_t startIndex = openSegment->endIndex + 1;
-    uint64_t index = startIndex;
+    size_t startIndex = openSegment->endIndex + 1;
+    size_t index = startIndex;
     for (auto it = entries.begin(); it != entries.end(); ++it) {
         Segment::Record record(openSegment->bytes);
         // Note that record.offset may change later, if this entry doesn't fit.
@@ -572,7 +572,7 @@ SegmentedLog::append(const std::vector<const Entry*>& entries)
 }
 
 const SegmentedLog::Entry&
-SegmentedLog::getEntry(uint64_t index) const
+SegmentedLog::getEntry(size_t index) const
 {
     if (index < getLogStartIndex() ||
         index > getLastLogIndex()) {
@@ -588,13 +588,13 @@ SegmentedLog::getEntry(uint64_t index) const
     return segment.entries.at(index - segment.startIndex).entry;
 }
 
-uint64_t
+size_t
 SegmentedLog::getLogStartIndex() const
 {
     return logStartIndex;
 }
 
-uint64_t
+size_t
 SegmentedLog::getLastLogIndex() const
 {
     // Although it's a class invariant that there's always an open segment,
@@ -615,7 +615,7 @@ SegmentedLog::getName() const
         return "Segmented-Text";
 }
 
-uint64_t
+size_t
 SegmentedLog::getSizeBytes() const
 {
     return totalClosedSegmentBytes + getOpenSegment().bytes;
@@ -639,7 +639,7 @@ SegmentedLog::syncCompleteVirtual(std::unique_ptr<Log::Sync> sync)
 }
 
 void
-SegmentedLog::truncatePrefix(uint64_t newStartIndex)
+SegmentedLog::truncatePrefix(size_t newStartIndex)
 {
     if (newStartIndex <= logStartIndex)
         return;
@@ -676,7 +676,7 @@ SegmentedLog::truncatePrefix(uint64_t newStartIndex)
 }
 
 void
-SegmentedLog::truncateSuffix(uint64_t newEndIndex)
+SegmentedLog::truncateSuffix(size_t newEndIndex)
 {
     if (newEndIndex >= getLastLogIndex())
         return;
@@ -688,7 +688,7 @@ SegmentedLog::truncateSuffix(uint64_t newEndIndex)
         Segment& openSegment = getOpenSegment();
         if (newEndIndex >= openSegment.startIndex) {
             // Update in-memory segment
-            uint64_t i = newEndIndex + 1 - openSegment.startIndex;
+            size_t i = newEndIndex + 1 - openSegment.startIndex;
             openSegment.bytes = openSegment.entries.at(i).offset;
             openSegment.entries.erase(
                 openSegment.entries.begin() + int64_t(i),
@@ -723,8 +723,8 @@ SegmentedLog::truncateSuffix(uint64_t newEndIndex)
             segmentsByStartIndex.erase(segment.startIndex);
         } else if (segment.endIndex > newEndIndex) { // truncate segment
             // Update in-memory segment
-            uint64_t i = newEndIndex + 1 - segment.startIndex;
-            uint64_t newBytes = segment.entries.at(i).offset;
+            size_t i = newEndIndex + 1 - segment.startIndex;
+            size_t newBytes = segment.entries.at(i).offset;
             totalClosedSegmentBytes -= (segment.bytes - newBytes);
             segment.bytes = newBytes;
             segment.entries.erase(
@@ -831,8 +831,8 @@ SegmentedLog::readSegmentFilenames()
         segment.filename = filename;
         segment.bytes = 0;
         { // Closed segment: xxx-yyy
-            uint64_t startIndex = 1;
-            uint64_t endIndex = 0;
+            size_t startIndex = 1;
+            size_t endIndex = 0;
             unsigned bytesConsumed;
             int matched = sscanf(filename.c_str(),
                                  CLOSED_SEGMENT_FORMAT "%n",
@@ -907,7 +907,7 @@ SegmentedLog::readMetadata(const std::string& filename,
 }
 
 bool
-SegmentedLog::loadClosedSegment(Segment& segment, uint64_t logStartIndex)
+SegmentedLog::loadClosedSegment(Segment& segment, size_t logStartIndex)
 {
     assert(!segment.isOpen);
     FS::File file = FS::openFile(dir, segment.filename, O_RDWR);
@@ -999,7 +999,7 @@ SegmentedLog::loadOpenSegment(Segment& segment, uint64_t logStartIndex)
         }
     }
 
-    uint64_t lastIndex = 0;
+    size_t lastIndex = 0;
     while (offset < reader.getFileLength()) {
         segment.entries.emplace_back(offset);
         std::string error = readProtoFromFile(
@@ -1101,7 +1101,7 @@ SegmentedLog::checkInvariants()
         assert(segment.entries.size() ==
                segment.endIndex + 1 - segment.startIndex);
         uint64_t lastOffset = 0;
-        for (uint64_t i = 0; i < segment.entries.size(); ++i) {
+        for (size_t i = 0; i < segment.entries.size(); ++i) {
             assert(segment.entries.at(i).entry.index() ==
                    segment.startIndex + i);
             if (i == 0)
@@ -1265,7 +1265,7 @@ SegmentedLog::serializeProto(const google::protobuf::Message& in) const
 {
     // TODO(ongaro): can the intermediate buffer be avoided?
     const void* data = NULL;
-    uint64_t len = 0;
+    size_t len = 0;
     Core::Buffer binaryContents;
     std::string asciiContents;
     switch (encoding) {
@@ -1282,7 +1282,7 @@ SegmentedLog::serializeProto(const google::protobuf::Message& in) const
             break;
         }
     }
-    uint64_t netLen = htobe64(len);
+    size_t netLen = htobe64(len);
     char checksum[Core::Checksum::MAX_LENGTH];
     uint32_t checksumLen = Core::Checksum::calculate(
         checksumAlgorithm.c_str(), {
@@ -1291,7 +1291,7 @@ SegmentedLog::serializeProto(const google::protobuf::Message& in) const
         },
         checksum);
 
-    uint64_t totalLen = checksumLen + sizeof(netLen) + len;
+    size_t totalLen = checksumLen + sizeof(netLen) + len;
     char* buf = new char[totalLen];
     Core::Buffer record(
         buf,
