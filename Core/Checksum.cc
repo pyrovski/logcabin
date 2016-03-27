@@ -97,7 +97,7 @@ writeChecksumHelper(
  */
 template<typename HashFn>
 uint32_t
-writeChecksum(std::initializer_list<std::pair<const void*, uint64_t>> data,
+writeChecksum(std::initializer_list<std::pair<const void*, size_t>> data,
               char result[MAX_LENGTH])
 {
     HashFn hashFn;
@@ -119,7 +119,7 @@ writeChecksum(std::initializer_list<std::pair<const void*, uint64_t>> data,
  *      terminator. This is guaranteed to be greater than 1.
  */
 typedef uint32_t (*Algorithm)(
-            std::initializer_list<std::pair<const void*, uint64_t>> data,
+            std::initializer_list<std::pair<const void*, size_t>> data,
             char result[MAX_LENGTH]);
 
 /**
@@ -193,7 +193,7 @@ listAlgorithms()
 
 uint32_t
 calculate(const char* algorithm,
-          const void* data, uint64_t dataLength,
+          const void* data, size_t dataLength,
           char output[MAX_LENGTH])
 {
     return calculate(algorithm, {{data, dataLength}}, output);
@@ -201,7 +201,7 @@ calculate(const char* algorithm,
 
 uint32_t
 calculate(const char* algorithm,
-          std::initializer_list<std::pair<const void*, uint64_t>> data,
+          std::initializer_list<std::pair<const void*, size_t>> data,
           char output[MAX_LENGTH])
 {
     Algorithm algo = algorithms.find(algorithm);
@@ -230,14 +230,14 @@ length(const char* checksum,
 
 std::string
 verify(const char* checksum,
-       const void* data, uint64_t dataLength)
+       const void* data, size_t dataLength)
 {
     return verify(checksum, {{data, dataLength}});
 }
 
 std::string
 verify(const char* checksum,
-       std::initializer_list<std::pair<const void*, uint64_t>> data)
+       std::initializer_list<std::pair<const void*, size_t>> data)
 {
     if (!Core::StringUtil::isPrintable(checksum))
         return "The given checksum value is corrupt and not printable.";
