@@ -159,7 +159,7 @@ toString(uint64_t v)
     char buf[17];
     snprintf(buf,
              sizeof(buf),
-             "%016" PRIx64,
+             "%016ju",
              v);
     buf[sizeof(buf) - 1] = '\0';
     return buf;
