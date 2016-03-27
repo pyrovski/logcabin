@@ -112,7 +112,7 @@ protoToFile(const google::protobuf::Message& in,
 }
 
 ////////// SimpleFileLog::Sync //////////
-SimpleFileLog::Sync::Sync(uint64_t lastIndex)
+SimpleFileLog::Sync::Sync(size_t lastIndex)
     : Log::Sync(lastIndex)
     , fds()
 {
@@ -222,11 +222,11 @@ SimpleFileLog::~SimpleFileLog()
         currentSync->completed = true;
 }
 
-std::pair<uint64_t, uint64_t>
+std::pair<size_t, size_t>
 SimpleFileLog::append(const std::vector<const Entry*>& entries)
 {
-    std::pair<uint64_t, uint64_t> range = memoryLog.append(entries);
-    for (uint64_t index = range.first; index <= range.second; ++index) {
+    std::pair<size_t, size_t> range = memoryLog.append(entries);
+    for (size_t index = range.first; index <= range.second; ++index) {
         FilesystemUtil::File file = protoToFile(memoryLog.getEntry(index),
                                                 dir, format("%016lx", index));
         currentSync->fds.push_back({file.release(), true});
@@ -254,42 +254,42 @@ SimpleFileLog::takeSync()
 }
 
 void
-SimpleFileLog::truncatePrefix(uint64_t firstEntryId)
+SimpleFileLog::truncatePrefix(size_t firstEntryId)
 {
-    uint64_t old = getLogStartIndex();
+    size_t old = getLogStartIndex();
     memoryLog.truncatePrefix(firstEntryId);
     // update metadata before removing files in case of interruption
     updateMetadata();
-    for (uint64_t entryId = old; entryId < getLogStartIndex(); ++entryId)
+    for (size_t entryId = old; entryId < getLogStartIndex(); ++entryId)
         FilesystemUtil::removeFile(dir, format("%016lx", entryId));
     // fsync(dir) not needed because of metadata
 }
 
 void
-SimpleFileLog::truncateSuffix(uint64_t lastEntryId)
+SimpleFileLog::truncateSuffix(size_t lastEntryId)
 {
-    uint64_t old = getLastLogIndex();
+    size_t old = getLastLogIndex();
     memoryLog.truncateSuffix(lastEntryId);
     // update metadata before removing files in case of interruption
     updateMetadata();
-    for (uint64_t entryId = old; entryId > getLastLogIndex(); --entryId)
+    for (size_t entryId = old; entryId > getLastLogIndex(); --entryId)
         FilesystemUtil::removeFile(dir, format("%016lx", entryId));
     // fsync(dir) not needed because of metadata
 }
 
 const SimpleFileLog::Entry&
-SimpleFileLog::getEntry(uint64_t i) const
+SimpleFileLog::getEntry(size_t i) const
 {
     return memoryLog.getEntry(i);
 }
 
-uint64_t
+size_t
 SimpleFileLog::getLogStartIndex() const
 {
     return memoryLog.getLogStartIndex();
 }
 
-uint64_t
+size_t
 SimpleFileLog::getLastLogIndex() const
 {
     return memoryLog.getLastLogIndex();

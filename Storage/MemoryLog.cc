@@ -42,11 +42,11 @@ MemoryLog::~MemoryLog()
     currentSync->completed = true;
 }
 
-std::pair<uint64_t, uint64_t>
+std::pair<size_t, size_t>
 MemoryLog::append(const std::vector<const Entry*>& newEntries)
 {
-    uint64_t firstIndex = startIndex + entries.size();
-    uint64_t lastIndex = firstIndex + newEntries.size() - 1;
+    size_t firstIndex = startIndex + entries.size();
+    size_t lastIndex = firstIndex + newEntries.size() - 1;
     for (auto it = newEntries.begin(); it != newEntries.end(); ++it)
         entries.push_back(**it);
     currentSync->lastIndex = lastIndex;
@@ -54,20 +54,20 @@ MemoryLog::append(const std::vector<const Entry*>& newEntries)
 }
 
 const Log::Entry&
-MemoryLog::getEntry(uint64_t index) const
+MemoryLog::getEntry(size_t index) const
 {
-    uint64_t offset = index - startIndex;
+    size_t offset = index - startIndex;
     return entries.at(offset);
 }
 
-uint64_t
+size_t
 MemoryLog::getLogStartIndex() const
 {
     return startIndex;
 }
 
 
-uint64_t
+size_t
 MemoryLog::getLastLogIndex() const
 {
     return startIndex + entries.size() - 1;

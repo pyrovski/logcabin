@@ -364,7 +364,7 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
     , totalClosedSegmentBytes(0)
     , preparedSegments(
         std::max(config.read<size_t>("storageOpenSegments", 3),
-                 1UL))
+                 std::size_t{1}))
     , currentSync(new SegmentedLog::Sync(0, diskWriteDurationThreshold))
     , metadataWriteNanos()
     , filesystemOpsNanos()
@@ -417,7 +417,7 @@ SegmentedLog::SegmentedLog(const FS::File& parentDir,
                                                        std::move(segment)});
             if (!result.second) {
                 Segment& other = result.first->second;
-                PANIC("Two segments contain entry %" PRIu64 ": %s and %s",
+                PANIC("Two segments contain entry %zu: %s and %s",
                       startIndex,
                       other.filename.c_str(),
                       filename.c_str());

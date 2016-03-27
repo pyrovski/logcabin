@@ -130,7 +130,7 @@ class SegmentedLog : public Log {
     size_t getLogStartIndex() const;
     size_t getLastLogIndex() const;
     std::string getName() const;
-    uint64_t getSizeBytes() const;
+    size_t getSizeBytes() const;
     std::unique_ptr<Log::Sync> takeSync();
     void syncCompleteVirtual(std::unique_ptr<Log::Sync> sync);
     void truncatePrefix(size_t firstIndex);
@@ -326,13 +326,13 @@ class SegmentedLog : public Log {
             /**
              * Constructor.
              */
-            explicit Record(uint64_t offset);
+            explicit Record(size_t offset);
 
             /**
              * Byte offset in the file where the entry begins.
              * This is used when truncating a segment.
              */
-            uint64_t offset;
+            size_t offset;
 
             /**
              * The entry itself.
@@ -620,7 +620,7 @@ class SegmentedLog : public Log {
      * The total number of bytes occupied by the closed segments on disk.
      * Used to calculate getSizeBytes() efficiently.
      */
-    uint64_t totalClosedSegmentBytes;
+    size_t totalClosedSegmentBytes;
 
     /**
      * See PreparedSegments.

@@ -37,7 +37,7 @@ class Globals;
 class SimpleFileLog : public Log {
     class Sync : public Log::Sync {
       public:
-        explicit Sync(uint64_t lastIndex);
+        explicit Sync(size_t lastIndex);
         void wait();
         /**
          * Set of file descriptors that are fsynced and closed on wait().
