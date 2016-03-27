@@ -448,13 +448,13 @@ class Peer : public Server {
      * The number of bytes of 'snapshotFile' that have been acknowledged by the
      * follower already. Send starting here next time.
      */
-    uint64_t snapshotFileOffset;
+    size_t snapshotFileOffset;
     /**
      * The last log index that 'snapshotFile' corresponds to. This is used to
      * set the follower's #nextIndex accordingly after we're done sending it
      * the snapshot.
      */
-    uint64_t lastSnapshotIndex;
+    size_t lastSnapshotIndex;
 
   private:
 
@@ -909,7 +909,7 @@ class RaftConsensus {
          * covers). Pass this as the lastIndex argument to the next call to
          * getNextEntry().
          */
-        uint64_t index;
+        size_t index;
 
         /**
          * The type of the entry.
@@ -1023,7 +1023,7 @@ class RaftConsensus {
      * replicated log. This is used to provide non-stale reads to the state
      * machine.
      */
-    std::pair<ClientResult, uint64_t> getLastCommitIndex() const;
+    std::pair<ClientResult, size_t> getLastCommitIndex() const;
 
     /**
      * Return the network address for a recent leader, if known,
@@ -1042,7 +1042,7 @@ class RaftConsensus {
      * \throw Core::Util::ThreadInterruptedException
      *      Thread should exit.
      */
-    Entry getNextEntry(uint64_t lastIndex) const;
+    Entry getNextEntry(size_t lastIndex) const;
 
     /**
      * Return statistics that may be useful in deciding when to snapshot.
@@ -1133,7 +1133,7 @@ class RaftConsensus {
      *      A file the state machine can dump its snapshot into.
      */
     std::unique_ptr<Storage::SnapshotFile::Writer>
-    beginSnapshot(uint64_t lastIncludedIndex);
+    beginSnapshot(size_t lastIncludedIndex);
 
     /**
      * Complete taking a snapshot for the log entries in range [1,
@@ -1148,7 +1148,7 @@ class RaftConsensus {
      *      from another server. If this snapshot is to be saved (normal case),
      *      the consensus module will call save() on it.
      */
-    void snapshotDone(uint64_t lastIncludedIndex,
+    void snapshotDone(size_t lastIncludedIndex,
                       std::unique_ptr<Storage::SnapshotFile::Writer> writer);
 
     /**
@@ -1317,8 +1317,8 @@ class RaftConsensus {
      * \return
      *      Number of entries in the request.
      */
-    uint64_t
-    packEntries(uint64_t nextIndex,
+    size_t
+    packEntries(size_t nextIndex,
                 Protocol::Raft::AppendEntries::Request& request) const;
 
     /**
@@ -1582,7 +1582,7 @@ class RaftConsensus {
      * a little while (to avoid shipping snapshots to straggling followers).
      * Thus, the log may or may not have some of the entries in this range.
      */
-    uint64_t lastSnapshotIndex;
+    size_t lastSnapshotIndex;
 
     /**
      * The term of the last entry covered by the latest good snapshot, or 0 if
@@ -1600,7 +1600,7 @@ class RaftConsensus {
      * The size of the latest good snapshot in bytes, or 0 if we have no
      * snapshot.
      */
-    uint64_t lastSnapshotBytes;
+    size_t lastSnapshotBytes;
 
     /**
      * If not NULL, this is a Storage::SnapshotFile::Reader that covers up through
@@ -1624,7 +1624,7 @@ class RaftConsensus {
      * this server's log are guaranteed to never change. This value will
      * monotonically increase over time.
      */
-    uint64_t commitIndex;
+    size_t commitIndex;
 
     /**
      * The server ID of the leader for this term. This is used to help point

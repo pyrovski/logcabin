@@ -107,7 +107,7 @@ LocalServer::getLastAckEpoch() const
     return consensus.currentEpoch;
 }
 
-uint64_t
+size_t
 LocalServer::getMatchIndex() const
 {
     return lastSyncedIndex;
@@ -232,7 +232,7 @@ Peer::getLastAckEpoch() const
     return lastAckEpoch;
 }
 
-uint64_t
+size_t
 Peer::getMatchIndex() const
 {
     return matchIndex;
@@ -456,7 +456,7 @@ Configuration::SimpleConfiguration::quorumAll(const Predicate& predicate) const
 {
     if (servers.empty())
         return true;
-    uint64_t count = 0;
+    size_t count = 0;
     for (auto it = servers.begin(); it != servers.end(); ++it)
         if (predicate(**it))
             ++count;
@@ -753,7 +753,7 @@ ConfigurationManager::~ConfigurationManager()
 
 void
 ConfigurationManager::add(
-    uint64_t index,
+    size_t index,
     const Protocol::Raft::Configuration& description)
 {
     descriptions[index] = description;
@@ -761,7 +761,7 @@ ConfigurationManager::add(
 }
 
 void
-ConfigurationManager::truncatePrefix(uint64_t firstIndexKept)
+ConfigurationManager::truncatePrefix(size_t firstIndexKept)
 {
     descriptions.erase(descriptions.begin(),
                        descriptions.lower_bound(firstIndexKept));
@@ -769,7 +769,7 @@ ConfigurationManager::truncatePrefix(uint64_t firstIndexKept)
 }
 
 void
-ConfigurationManager::truncateSuffix(uint64_t lastIndexKept)
+ConfigurationManager::truncateSuffix(size_t lastIndexKept)
 {
     descriptions.erase(descriptions.upper_bound(lastIndexKept),
                        descriptions.end());
@@ -778,7 +778,7 @@ ConfigurationManager::truncateSuffix(uint64_t lastIndexKept)
 
 void
 ConfigurationManager::setSnapshot(
-    uint64_t index,
+    size_t index,
     const Protocol::Raft::Configuration& description)
 {
     assert(index >= snapshot.first);
@@ -786,9 +786,9 @@ ConfigurationManager::setSnapshot(
     restoreInvariants();
 }
 
-std::pair<uint64_t, Protocol::Raft::Configuration>
+std::pair<size_t, Protocol::Raft::Configuration>
 ConfigurationManager::getLatestConfigurationAsOf(
-                                        uint64_t lastIncludedIndex) const
+                                        size_t lastIncludedIndex) const
 {
     if (descriptions.empty())
         return {0, {}};
@@ -1172,7 +1172,7 @@ RaftConsensus::getConfiguration(
     return ClientResult::SUCCESS;
 }
 
-std::pair<RaftConsensus::ClientResult, uint64_t>
+std::pair<RaftConsensus::ClientResult, size_t>
 RaftConsensus::getLastCommitIndex() const
 {
     std::unique_lock<Mutex> lockGuard(mutex);
@@ -1190,10 +1190,10 @@ RaftConsensus::getLeaderHint() const
 }
 
 RaftConsensus::Entry
-RaftConsensus::getNextEntry(uint64_t lastIndex) const
+RaftConsensus::getNextEntry(size_t lastIndex) const
 {
     std::unique_lock<Mutex> lockGuard(mutex);
-    uint64_t nextIndex = lastIndex + 1;
+    size_t nextIndex = lastIndex + 1;
     while (true) {
         if (exiting)
             throw Core::Util::ThreadInterruptedException();
@@ -1375,8 +1375,8 @@ RaftConsensus::handleAppendEntries(
                 continue;
             // should never truncate committed entries:
             assert(commitIndex < index);
-            uint64_t lastIndexKept = index - 1;
-            uint64_t numTruncating = log->getLastLogIndex() - lastIndexKept;
+            size_t lastIndexKept = index - 1;
+            size_t numTruncating = log->getLastLogIndex() - lastIndexKept;
             NOTICE("Truncating %" PRIu64 " entries after %" PRIu64 " from the log",
                    numTruncating,
                    lastIndexKept);
@@ -1532,7 +1532,7 @@ RaftConsensus::handleRequestVote(
     assert(!exiting);
 
     // If the caller has a less complete log, we can't give it our vote.
-    uint64_t lastLogIndex = log->getLastLogIndex();
+    size_t lastLogIndex = log->getLastLogIndex();
     uint64_t lastLogTerm = getLastLogTerm();
     bool logIsOk = (request.last_log_term() > lastLogTerm ||
                     (request.last_log_term() == lastLogTerm &&
@@ -2227,7 +2227,7 @@ RaftConsensus::append(const std::vector<const Log::Entry*>& entries)
 {
     for (auto it = entries.begin(); it != entries.end(); ++it)
         assert((*it)->term() != 0);
-    std::pair<uint64_t, uint64_t> range = log->append(entries);
+    std::pair<size_t, size_t> range = log->append(entries);
     if (state == State::LEADER) { // defer log sync
         logSyncQueued = true;
     } else { // sync log now
@@ -2235,7 +2235,7 @@ RaftConsensus::append(const std::vector<const Log::Entry*>& entries)
         sync->wait();
         log->syncComplete(std::move(sync));
     }
-    uint64_t index = range.first;
+    size_t index = range.first;
     for (auto it = entries.begin(); it != entries.end(); ++it) {
         const Log::Entry& entry = **it;
         if (entry.type() == Protocol::Raft::EntryType::CONFIGURATION)
@@ -2279,7 +2279,7 @@ RaftConsensus::appendEntries(std::unique_lock<Mutex>& lockGuard,
     request.set_term(currentTerm);
     request.set_prev_log_term(prevLogTerm);
     request.set_prev_log_index(prevLogIndex);
-    uint64_t numEntries = 0;
+    size_t numEntries = 0;
     if (!peer.suppressBulkData)
         numEntries = packEntries(peer.nextIndex, request);
     request.set_commit_index(std::min(commitIndex, prevLogIndex + numEntries));
@@ -2415,7 +2415,7 @@ RaftConsensus::installSnapshot(std::unique_lock<Mutex>& lockGuard,
         // the file and the maximum length for RPCs.
         numDataBytes = std::min(
             peer.snapshotFile->getFileLength() - peer.snapshotFileOffset,
-            SOFT_RPC_SIZE_LIMIT);
+            (uint64_t)SOFT_RPC_SIZE_LIMIT);
     }
     request.set_data(peer.snapshotFile->get<char>(peer.snapshotFileOffset,
                                                   numDataBytes),
@@ -2598,7 +2598,7 @@ RaftConsensus::packEntries(
         *request.mutable_entries();
 
     size_t numEntries = 0;
-    uint64_t currentSize = downCast<uint64_t>(request.ByteSize());
+    size_t currentSize = downCast<size_t>(request.ByteSize());
 
     for (size_t index = nextIndex; index <= lastIndex; ++index) {
         const Log::Entry& entry = log->getEntry(index);
@@ -2608,12 +2608,12 @@ RaftConsensus::packEntries(
         // and a length. We conservatively assume the tag and length will
         // be up to 10 bytes each (2^64), though in practice the tag is
         // probably one byte and the length is probably two.
-        currentSize += uint64_t(entry.ByteSize()) + 20;
+        currentSize += size_t(entry.ByteSize()) + 20;
 
         if (currentSize >= SOFT_RPC_SIZE_LIMIT) {
             // The message might be too big: calculate more exact but more
             // expensive size.
-            uint64_t actualSize = downCast<uint64_t>(request.ByteSize());
+            size_t actualSize = downCast<size_t>(request.ByteSize());
             assert(currentSize >= actualSize);
             currentSize = actualSize;
             if (currentSize >= SOFT_RPC_SIZE_LIMIT && numEntries > 0) {
@@ -2645,7 +2645,7 @@ RaftConsensus::readSnapshot()
     if (reader) {
         // Check that this snapshot uses format version 1
         uint8_t version = 0;
-        uint64_t bytesRead = reader->readRaw(&version, sizeof(version));
+        size_t bytesRead = reader->readRaw(&version, sizeof(version));
         if (bytesRead < 1) {
             PANIC("Found completely empty snapshot file (it doesn't even "
                   "have a version field)");
@@ -2738,7 +2738,7 @@ RaftConsensus::readSnapshot()
     snapshotReader = std::move(reader);
 }
 
-std::pair<RaftConsensus::ClientResult, uint64_t>
+std::pair<RaftConsensus::ClientResult, size_t>
 RaftConsensus::replicateEntry(Log::Entry& entry,
                               std::unique_lock<Mutex>& lockGuard)
 {
@@ -2746,7 +2746,7 @@ RaftConsensus::replicateEntry(Log::Entry& entry,
         entry.set_term(currentTerm);
         entry.set_cluster_time(clusterClock.leaderStamp());
         append({&entry});
-        uint64_t index = log->getLastLogIndex();
+        size_t index = log->getLastLogIndex();
         while (!exiting && currentTerm == entry.term()) {
             if (commitIndex >= index) {
                 VERBOSE("replicate succeeded");
